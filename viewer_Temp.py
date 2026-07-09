@@ -42,14 +42,27 @@ def main():
 
         
         
-        if "selected_day" not in st.session_state:
-           st.session_state.selected_day = dates[0]
+        # Convert strings to real dates
+        date_objects = [
+            datetime.fromisoformat(d).date()
+            for d in dates
+        ]
 
-        st.session_state.selected_day = CalendarPanel(dates).show(
-           st.session_state.selected_day
+        min_date = min(date_objects)
+        max_date = max(date_objects)
+
+        picked_date = st.date_input(
+            "Choose a day",
+            value=max_date,
+            min_value=min_date,
+            max_value=max_date
         )
 
-        selected_day = st.session_state.selected_day
+        selected_day = picked_date.isoformat()
+                
+        if selected_day not in dates:
+            st.warning("No Timeline data for this day.")
+            return 
                
 
         visits = db.visits(selected_day)
