@@ -4,6 +4,9 @@ import os
 
 DB = "timeline.db"
 
+print("Importer folder:", os.getcwd())
+print("Importer DB path:", os.path.abspath("timeline.db"))
+
 if os.path.exists("timeline.db"):
     os.remove("timeline.db")
 conn = sqlite3.connect(DB)
@@ -46,9 +49,39 @@ CREATE TABLE IF NOT EXISTS path_points(
 """)
 
 cur.execute("""
+CREATE TABLE IF NOT EXISTS place_cache(
+    id INTEGER PRIMARY KEY,
+    latitude REAL,
+    longitude REAL,
+    place_id TEXT,
+    name TEXT,
+    address TEXT,
+    city TEXT,
+    country TEXT,
+    last_updated TEXT,
+    UNIQUE(latitude, longitude)
+)
+""")
+
+cur.execute("""
+CREATE INDEX IF NOT EXISTS idx_place_cache_latlon
+ON place_cache(latitude, longitude)
+""")
+
+cur.execute("""
+CREATE INDEX IF NOT EXISTS idx_place_cache_place_id
+ON place_cache(place_id)
+""")
+
+
+
+cur.execute("""
 CREATE INDEX IF NOT EXISTS idx_path_activity
 ON path_points(activity_id)
 """)
+
+
+
 
 
 
@@ -124,4 +157,8 @@ cur.execute("CREATE INDEX IF NOT EXISTS idx_activity_start ON activities(start_t
 conn.commit()
 conn.close()
 
+print("Importer folder:", os.getcwd())
+print("Importer DB path:", os.path.abspath("timeline.db"))
 print("Database created.")
+
+input("Press Enter to close...")
