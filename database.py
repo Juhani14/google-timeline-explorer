@@ -50,7 +50,75 @@ class Database:
         ORDER BY start_time
 
         """, self.conn, params=(day,))
+        
+    def get_place_name(self, latitude, longitude, place_id=None):
+        cur = self.conn.cursor()
 
+        if place_id:
+            cur.execute("""
+            SELECT name, address, city, country
+            FROM place_cache
+            WHERE place_id=?
+            """, (place_id,))
+
+            row = cur.fetchone()
+
+            if row:
+                name, address, city, country = row
+                return name or address or city or country
+
+        cur.execute("""
+        SELECT name, address, city, country
+        FROM place_cache
+        WHERE latitude=? AND longitude=?
+        """, (latitude, longitude))
+
+        row = cur.fetchone()
+
+        if row:
+            name, address, city, country = row
+            return name or address or city or country
+
+        return None
+
+    def save_place_name(
+        self,
+        latitude,
+        longitude,
+        name=None,
+        address=None,
+        place_id=None,
+        city=None,
+        country=None,
+        last_updated=None
+    ):
+        cur = self.conn.cursor()
+
+        cur.execute("""
+        INSERT OR REPLACE INTO place_cache(
+            latitude,
+            longitude,
+            place_id,
+            name,
+            address,
+            city,
+            country,
+            last_updated
+        )
+        VALUES(?,?,?,?,?,?,?,?)
+        """, (
+            latitude,
+            longitude,
+            place_id,
+            name,
+            address,
+            city,
+            country,
+            last_updated
+        ))
+
+        self.conn.commit()    
+        
     def close(self):
 
         self.conn.close()

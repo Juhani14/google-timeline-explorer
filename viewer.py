@@ -7,9 +7,13 @@ from database import Database
 from timeline_data import TimelineData
 from timeline_panel import TimelinePanel
 from map_view import TimelineMap
+from statistics_panel import StatisticsPanel
 
 DB = "timeline.db"
 
+import os
+st.sidebar.write("Current folder:", os.getcwd())
+st.sidebar.write("DB path:", os.path.abspath(DB))
 
 def main():
 
@@ -51,7 +55,16 @@ def main():
     visits = db.visits(selected_day)
 
     activities = db.activities(selected_day)
-
+    
+    visits["place_name"] = visits.apply(
+        lambda v: db.get_place_name(
+            v.latitude,
+            v.longitude,
+            v.place_id if "place_id" in visits.columns else None
+        ) or "Visit",
+        axis=1
+    )
+    
     db.close()
 
     # -----------------------------------------

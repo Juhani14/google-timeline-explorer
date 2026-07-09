@@ -38,7 +38,7 @@ class TimelinePanel:
 
             events.append({
                 "time": v.start_time,
-                "text": f"📍 Visit\n{minutes:.0f} min"
+                "text": f"📍 {v.place_name}\n{minutes:.0f} min"
             })
 
         for _, a in self.data.activities.iterrows():
