@@ -1,0 +1,12 @@
+GoogleTimelineExplorer/
+
+│
+├── viewer.py               ← Main Streamlit program
+├── config.py               ← Colors, icons, constants
+├── database.py             ← SQLite interface
+├── map_view.py             ← Map drawing
+├── timeline_panel.py       ← Timeline and statistics
+├── utils.py                ← Date/time utilities
+│
+├── timeline.db
+└── timeline.json

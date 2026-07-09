@@ -1,0 +1,85 @@
+# viewer.py
+
+import streamlit as st
+
+from config import APP_NAME
+from database import Database
+from timeline_data import TimelineData
+from timeline_panel import TimelinePanel
+from map_view import TimelineMap
+
+DB = "timeline.db"
+
+
+def main():
+
+    st.set_page_config(
+        page_title=APP_NAME,
+        layout="wide"
+    )
+
+    st.title(APP_NAME)
+
+    # -----------------------------------------
+    # Open database
+    # -----------------------------------------
+
+    db = Database(DB)
+
+    dates = db.dates()["d"].tolist()
+
+    if len(dates) == 0:
+
+        st.error("Database contains no timeline data.")
+
+        db.close()
+        return
+
+    # -----------------------------------------
+    # Select day
+    # -----------------------------------------
+
+    selected_day = st.selectbox(
+        "Choose a day",
+        dates
+    )
+
+    # -----------------------------------------
+    # Load one day
+    # -----------------------------------------
+
+    visits = db.visits(selected_day)
+
+    activities = db.activities(selected_day)
+
+    db.close()
+
+    # -----------------------------------------
+    # Create TimelineData object
+    # -----------------------------------------
+
+    data = TimelineData(
+        selected_day,
+        visits,
+        activities
+    )
+
+    # -----------------------------------------
+    # Layout
+    # -----------------------------------------
+
+    left, right = st.columns([1, 2])
+
+    with left:
+
+        panel = TimelinePanel(data)
+        panel.show()
+
+    with right:
+
+        m = TimelineMap(data)
+        m.show()
+
+
+if __name__ == "__main__":
+    main()
