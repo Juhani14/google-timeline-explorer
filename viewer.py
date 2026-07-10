@@ -65,11 +65,23 @@ def main():
             axis=1
         )
 
+        if "selected_path_id" not in st.session_state:
+            st.session_state.selected_path_id = None
+
+        if "previous_selected_day" not in st.session_state:
+            st.session_state.previous_selected_day = selected_day
+
+        if st.session_state.previous_selected_day != selected_day:
+            st.session_state.selected_path_id = None
+            st.session_state.previous_selected_day = selected_day
+
+
         data = TimelineData(
             selected_day,
             visits,
             activities,
-            paths
+            paths,
+            st.session_state.selected_path_id
         )
 
         left, right = st.columns([1, 2])
