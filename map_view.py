@@ -10,7 +10,6 @@ from utils import duration_minutes, average_speed
 class TimelineMap:
 
     def __init__(self, data):
-
         self.data = data
 
         self.map = folium.Map(
@@ -18,31 +17,27 @@ class TimelineMap:
             zoom_start=MAP_ZOOM
         )
 
-    # ----------------------------------------
-    # Determine centre of map
-    # ----------------------------------------
-
     def _center(self):
 
         if len(self.data.visits):
-
             return [
                 self.data.visits.iloc[0]["latitude"],
                 self.data.visits.iloc[0]["longitude"]
             ]
 
         if len(self.data.activities):
-
             return [
                 self.data.activities.iloc[0]["start_lat"],
                 self.data.activities.iloc[0]["start_lon"]
             ]
 
-        return [0, 0]
+        if len(self.data.paths):
+            return [
+                self.data.paths.iloc[0]["latitude"],
+                self.data.paths.iloc[0]["longitude"]
+            ]
 
-    # ----------------------------------------
-    # Draw visit markers
-    # ----------------------------------------
+        return [0, 0]
 
     def draw_visits(self):
 
@@ -53,18 +48,14 @@ class TimelineMap:
                 v.end_time
             )
 
-            popup = f"""
-Visit
+            place_name = getattr(v, "place_name", "Visit")
 
-Start:
-{v.start_time}
-
-End:
-{v.end_time}
-
-Duration:
-{minutes:.0f} min
-"""
+            popup = (
+                f"{place_name}<br>"
+                f"Start: {v.start_time}<br>"
+                f"End: {v.end_time}<br>"
+                f"Duration: {minutes:.0f} min"
+            )
 
             folium.Marker(
                 location=[
@@ -78,9 +69,29 @@ Duration:
                 )
             ).add_to(self.map)
 
-    # ----------------------------------------
-    # Draw activity lines
-    # ----------------------------------------
+    def draw_paths(self):
+
+        if len(self.data.paths) == 0:
+            return
+
+        for _, group in self.data.paths.groupby("path_id"):
+
+            group = group.sort_values("sequence")
+
+            points = group[
+                ["latitude", "longitude"]
+            ].values.tolist()
+
+            if len(points) < 2:
+                continue
+
+            folium.PolyLine(
+                points,
+                color="darkblue",
+                weight=4,
+                opacity=0.8,
+                tooltip="Recorded Timeline path"
+            ).add_to(self.map)
 
     def draw_activities(self):
 
@@ -102,9 +113,9 @@ Duration:
             )
 
             tooltip = (
-                f"{a.activity_type}\n"
-                f"{a.distance:.0f} m\n"
-                f"{minutes:.0f} min\n"
+                f"{a.activity_type} | "
+                f"{a.distance:.0f} m | "
+                f"{minutes:.0f} min | "
                 f"{speed:.1f} km/h"
             )
 
@@ -114,25 +125,16 @@ Duration:
                     [a.end_lat, a.end_lon]
                 ],
                 color=color,
-                weight=5,
+                weight=3,
+                opacity=0.5,
                 tooltip=tooltip
             ).add_to(self.map)
 
-    # ----------------------------------------
-    # Draw everything
-    # ----------------------------------------
-
     def build(self):
-
         self.draw_visits()
-        self.draw_activities()
-
-    # ----------------------------------------
-    # Show map in Streamlit
-    # ----------------------------------------
+        self.draw_paths()
 
     def show(self):
-
         self.build()
 
         st_folium(

@@ -38,9 +38,17 @@ CREATE TABLE IF NOT EXISTS activities(
 """)
 
 cur.execute("""
+CREATE TABLE IF NOT EXISTS path_segments(
+    id INTEGER PRIMARY KEY,
+    start_time TEXT,
+    end_time TEXT
+)
+""")
+
+cur.execute("""
 CREATE TABLE IF NOT EXISTS path_points(
     id INTEGER PRIMARY KEY,
-    activity_id INTEGER,
+    path_id INTEGER,
     sequence INTEGER,
     point_time TEXT,
     latitude REAL,
@@ -76,8 +84,13 @@ ON place_cache(place_id)
 
 
 cur.execute("""
-CREATE INDEX IF NOT EXISTS idx_path_activity
-ON path_points(activity_id)
+CREATE INDEX IF NOT EXISTS idx_path_points_path
+ON path_points(path_id, sequence)
+""")
+
+cur.execute("""
+CREATE INDEX IF NOT EXISTS idx_path_start
+ON path_segments(start_time)
 """)
 
 
@@ -96,69 +109,144 @@ def parse_latlng(text):
 
 for s in segments:
 
+    # --------------------------------------------------
+    # Visits
+    # --------------------------------------------------
+
     if "visit" in s:
 
-        p=s["visit"]["topCandidate"]
+        p = s["visit"]["topCandidate"]
 
-        lat,lon=parse_latlng(
+        lat, lon = parse_latlng(
             p["placeLocation"]["latLng"]
         )
 
         cur.execute("""
         INSERT INTO visits(
-            start_time,end_time,
-            latitude,longitude,
+            start_time,
+            end_time,
+            latitude,
+            longitude,
             place_id
         )
         VALUES(?,?,?,?,?)
-        """,
-        (
+        """, (
             s["startTime"],
             s["endTime"],
             lat,
             lon,
-            p.get("placeId","")
+            p.get("placeId", "")
         ))
+
+    # --------------------------------------------------
+    # Activities
+    # --------------------------------------------------
 
     if "activity" in s:
 
-        a=s["activity"]
+        a = s["activity"]
 
-        slat,slon=parse_latlng(a["start"]["latLng"])
-        elat,elon=parse_latlng(a["end"]["latLng"])
+        slat, slon = parse_latlng(
+            a["start"]["latLng"]
+        )
+
+        elat, elon = parse_latlng(
+            a["end"]["latLng"]
+        )
 
         cur.execute("""
-INSERT INTO activities(
-    start_time,
-    end_time,
-    start_lat,
-    start_lon,
-    end_lat,
-    end_lon,
-    activity_type,
-    distance
-)
-VALUES(?,?,?,?,?,?,?,?)
-""",
-(
-    s["startTime"],
-    s["endTime"],
-    slat,
-    slon,
-    elat,
-    elon,
-    a["topCandidate"]["type"],
-    a.get("distanceMeters",0)
-))
+        INSERT INTO activities(
+            start_time,
+            end_time,
+            start_lat,
+            start_lon,
+            end_lat,
+            end_lon,
+            activity_type,
+            distance
+        )
+        VALUES(?,?,?,?,?,?,?,?)
+        """, (
+            s["startTime"],
+            s["endTime"],
+            slat,
+            slon,
+            elat,
+            elon,
+            a["topCandidate"]["type"],
+            a.get("distanceMeters", 0)
+        ))
+
+    # --------------------------------------------------
+    # Timeline paths
+    # --------------------------------------------------
+
+    if "timelinePath" in s:
+
+        cur.execute("""
+        INSERT INTO path_segments(
+            start_time,
+            end_time
+        )
+        VALUES(?,?)
+        """, (
+            s["startTime"],
+            s["endTime"]
+        ))
+
+        path_id = cur.lastrowid
+
+        for sequence, point in enumerate(s["timelinePath"]):
+
+            lat, lon = parse_latlng(
+                point["point"]
+            )
+
+            cur.execute("""
+            INSERT INTO path_points(
+                path_id,
+                sequence,
+                point_time,
+                latitude,
+                longitude
+            )
+            VALUES(?,?,?,?,?)
+            """, (
+                path_id,
+                sequence,
+                point.get("time", ""),
+                lat,
+                lon
+            ))
 
 activity_id = cur.lastrowid
-cur.execute("CREATE INDEX IF NOT EXISTS idx_visit_start ON visits(start_time)")
-cur.execute("CREATE INDEX IF NOT EXISTS idx_activity_start ON activities(start_time)")
+
+
+cur.execute("""
+CREATE INDEX IF NOT EXISTS idx_visit_start
+ON visits(start_time)
+""")
+
+cur.execute("""
+CREATE INDEX IF NOT EXISTS idx_activity_start
+ON activities(start_time)
+""")
+
+cur.execute("""
+CREATE INDEX IF NOT EXISTS idx_path_start
+ON path_segments(start_time)
+""")
+
+cur.execute("""
+CREATE INDEX IF NOT EXISTS idx_path_points_path
+ON path_points(path_id, sequence)
+""")
+
 conn.commit()
 conn.close()
 
-print("Importer folder:", os.getcwd())
-print("Importer DB path:", os.path.abspath("timeline.db"))
+
+
+
 print("Database created.")
 
-input("Press Enter to close...")

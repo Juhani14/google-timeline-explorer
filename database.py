@@ -50,6 +50,23 @@ class Database:
         ORDER BY start_time
 
         """, self.conn, params=(day,))
+
+    def paths(self, day):
+        return pd.read_sql("""
+        SELECT
+            ps.id AS path_id,
+            ps.start_time,
+            ps.end_time,
+            pp.sequence,
+            pp.point_time,
+            pp.latitude,
+            pp.longitude
+        FROM path_segments ps
+        JOIN path_points pp
+            ON pp.path_id = ps.id
+        WHERE substr(ps.start_time,1,10)=?
+        ORDER BY ps.start_time, pp.sequence
+        """, self.conn, params=(day,))        
         
     def get_place_name(self, latitude, longitude, place_id=None):
         cur = self.conn.cursor()

@@ -2,11 +2,12 @@
 
 class TimelineData:
 
-    def __init__(self, day, visits, activities):
 
+    def __init__(self, day, visits, activities, paths):
         self.day = day
         self.visits = visits
         self.activities = activities
+        self.paths = paths
 
     # ---------------------------------
     # Statistics

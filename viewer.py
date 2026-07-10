@@ -54,6 +54,7 @@ def main():
 
         visits = db.visits(selected_day)
         activities = db.activities(selected_day)
+        paths = db.paths(selected_day)
 
         visits["place_name"] = visits.apply(
             lambda v: db.get_place_name(
@@ -67,7 +68,8 @@ def main():
         data = TimelineData(
             selected_day,
             visits,
-            activities
+            activities,
+            paths
         )
 
         left, right = st.columns([1, 2])
