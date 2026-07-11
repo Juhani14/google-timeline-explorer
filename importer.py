@@ -1,6 +1,7 @@
 import json
 import sqlite3
 import os
+from datetime import datetime, timedelta, timezone
 
 DB = "timeline.db"
 
@@ -12,11 +13,32 @@ if os.path.exists("timeline.db"):
 conn = sqlite3.connect(DB)
 cur = conn.cursor()
 
+
+def make_local_time(timestamp, offset_minutes):
+    dt = datetime.fromisoformat(timestamp)
+
+    if offset_minutes is None:
+        return dt.replace(tzinfo=None).isoformat(
+            timespec="seconds"
+        )
+
+    target_zone = timezone(
+        timedelta(minutes=int(offset_minutes))
+    )
+
+    return dt.astimezone(
+        target_zone
+    ).replace(
+        tzinfo=None
+    ).isoformat(timespec="seconds")
+
 cur.execute("""
 CREATE TABLE IF NOT EXISTS visits(
     id INTEGER PRIMARY KEY,
     start_time TEXT,
     end_time TEXT,
+    local_start_time TEXT,
+    local_end_time TEXT,
     start_timezone_offset INTEGER,
     end_timezone_offset INTEGER,
     latitude REAL,
@@ -30,6 +52,8 @@ CREATE TABLE IF NOT EXISTS activities(
     id INTEGER PRIMARY KEY,
     start_time TEXT,
     end_time TEXT,
+    local_start_time TEXT,
+    local_end_time TEXT,
     start_timezone_offset INTEGER,
     end_timezone_offset INTEGER,
     start_lat REAL,
@@ -125,22 +149,44 @@ for s in segments:
             p["placeLocation"]["latLng"]
         )
 
+        start_offset = s.get(
+            "startTimeTimezoneUtcOffsetMinutes"
+        )
+
+        end_offset = s.get(
+            "endTimeTimezoneUtcOffsetMinutes"
+        )
+
+        local_start = make_local_time(
+            s["startTime"],
+            start_offset
+        )
+
+        local_end = make_local_time(
+            s["endTime"],
+            end_offset
+        )        
+        
         cur.execute("""
         INSERT INTO visits(
             start_time,
             end_time,
+            local_start_time,
+            local_end_time,
             start_timezone_offset,
             end_timezone_offset,
             latitude,
             longitude,
             place_id
         )
-        VALUES(?,?,?,?,?,?,?)
+        VALUES(?,?,?,?,?,?,?,?,?)
         """, (
             s["startTime"],
             s["endTime"],
-            s.get("startTimeTimezoneUtcOffsetMinutes"),
-            s.get("endTimeTimezoneUtcOffsetMinutes"),
+            local_start,
+            local_end,
+            start_offset,
+            end_offset,
             lat,
             lon,
             p.get("placeId", "")
@@ -162,10 +208,30 @@ for s in segments:
             a["end"]["latLng"]
         )
 
+        start_offset = s.get(
+            "startTimeTimezoneUtcOffsetMinutes"
+        )
+
+        end_offset = s.get(
+            "endTimeTimezoneUtcOffsetMinutes"
+        )
+
+        local_start = make_local_time(
+            s["startTime"],
+            start_offset
+        )
+
+        local_end = make_local_time(
+            s["endTime"],
+            end_offset
+        )
+
         cur.execute("""
         INSERT INTO activities(
             start_time,
             end_time,
+            local_start_time,
+            local_end_time,
             start_timezone_offset,
             end_timezone_offset,
             start_lat,
@@ -175,12 +241,14 @@ for s in segments:
             activity_type,
             distance
         )
-        VALUES(?,?,?,?,?,?,?,?,?,?)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
         """, (
             s["startTime"],
             s["endTime"],
-            s.get("startTimeTimezoneUtcOffsetMinutes"),
-            s.get("endTimeTimezoneUtcOffsetMinutes"),
+            local_start,
+            local_end,
+            start_offset,
+            end_offset,
             slat,
             slon,
             elat,
@@ -188,7 +256,6 @@ for s in segments:
             a["topCandidate"]["type"],
             a.get("distanceMeters", 0)
         ))
-
     # --------------------------------------------------
     # Timeline paths
     # --------------------------------------------------

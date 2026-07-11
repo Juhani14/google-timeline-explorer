@@ -6,8 +6,7 @@ from config import ICONS
 from pathlib import Path
 from utils import (
     duration_minutes,
-    average_speed,
-    local_time_text
+    average_speed
 )
 
 
@@ -50,11 +49,12 @@ class TimelinePanel:
             )
 
             visit_photos = self.data.photos_for_visit(visit)
+            
+            
 
             events.append({
                 "kind": "visit",
-                "time": visit.start_time,
-                "timezone_offset": visit.start_timezone_offset,
+                "time": visit.local_start_time,
                 "title": f"📍 {place_name}",
                 "details": f"{minutes:.0f} min",
                 "path_id": None,
@@ -81,19 +81,20 @@ class TimelinePanel:
                 activity
             )
 
+            
+
             events.append({
-                "kind": "activity",
-                "time": activity.start_time,
-                "timezone_offset": activity.start_timezone_offset,
-                "title": f"{icon} {activity.activity_type}",
-                "details": (
-                    f"{activity.distance:.0f} m · "
-                    f"{minutes:.0f} min · "
-                    f"{speed:.1f} km/h"
-                ),
-                "path_id": path_id,
-                "photos": None
-            })
+            "kind": "activity",
+            "time": activity.local_start_time,
+            "title": f"{icon} {activity.activity_type}",
+            "details": (
+                f"{activity.distance:.0f} m · "
+                f"{minutes:.0f} min · "
+                f"{speed:.1f} km/h"
+            ),
+            "path_id": path_id,
+            "photos": None
+        })
 
         events.sort(key=lambda event: event["time"])
 
@@ -109,9 +110,15 @@ class TimelinePanel:
             return
 
         for number, event in enumerate(events):
-            time_text = local_time_text(
-                event["time"],
-                event.get("timezone_offset")
+        
+            st.caption(f"DEBUG EVENT TIME: {event['time']}")
+            time_text = event["time"][11:16]
+            
+            st.caption(
+                f"DEBUG: raw={event['time']} | "
+                f"zone={event.get('timezone_name')} | "
+                f"offset={event.get('timezone_offset')} | "
+                f"display={time_text}"
             )
 
             st.markdown(

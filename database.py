@@ -10,46 +10,41 @@ class Database:
 
         self.conn = sqlite3.connect(filename)
 
+        
     def dates(self):
-
         return pd.read_sql("""
-
-        SELECT DISTINCT
-            substr(start_time,1,10) AS d
-
+        SELECT DISTINCT substr(local_start_time,1,10) AS d
         FROM visits
+        WHERE local_start_time IS NOT NULL
+
+        UNION
+
+        SELECT DISTINCT substr(local_start_time,1,10) AS d
+        FROM activities
+        WHERE local_start_time IS NOT NULL
 
         ORDER BY d DESC
-
-        """, self.conn)
-
+        """, self.conn)        
+        
+        
+        
     def visits(self, day):
-
         return pd.read_sql("""
-
         SELECT *
-
         FROM visits
-
-        WHERE substr(start_time,1,10)=?
-
-        ORDER BY start_time
-
-        """, self.conn, params=(day,))
-
+        WHERE substr(local_start_time,1,10)=?
+        ORDER BY local_start_time
+        """, self.conn, params=(day,))        
+        
     def activities(self, day):
-
         return pd.read_sql("""
-
         SELECT *
-
         FROM activities
+        WHERE substr(local_start_time,1,10)=?
+        ORDER BY local_start_time
+        """, self.conn, params=(day,))        
+        
 
-        WHERE substr(start_time,1,10)=?
-
-        ORDER BY start_time
-
-        """, self.conn, params=(day,))
 
     def paths(self, day):
         return pd.read_sql("""
