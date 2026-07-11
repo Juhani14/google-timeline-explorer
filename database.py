@@ -97,6 +97,54 @@ class Database:
             return name or address or city or country
 
         return None
+        
+    def unknown_places_for_day(self, day):
+        return pd.read_sql("""
+        SELECT DISTINCT
+            v.latitude,
+            v.longitude,
+            v.place_id
+        FROM visits v
+
+        LEFT JOIN place_cache pc
+          ON (
+              pc.place_id = v.place_id
+              AND v.place_id <> ''
+          )
+          OR (
+              pc.latitude = v.latitude
+              AND pc.longitude = v.longitude
+          )
+
+        WHERE substr(v.start_time, 1, 10) = ?
+          AND pc.id IS NULL
+
+        ORDER BY v.start_time
+        """, self.conn, params=(day,))
+        
+        
+    def unknown_places(self, limit=20):
+        return pd.read_sql("""
+        SELECT DISTINCT
+            v.latitude,
+            v.longitude,
+            v.place_id
+        FROM visits v
+
+        LEFT JOIN place_cache pc
+          ON (
+              pc.place_id = v.place_id
+              AND v.place_id <> ''
+          )
+          OR (
+              pc.latitude = v.latitude
+              AND pc.longitude = v.longitude
+          )
+
+        WHERE pc.id IS NULL
+
+        LIMIT ?
+        """, self.conn, params=(limit,))        
 
     def save_place_name(
         self,

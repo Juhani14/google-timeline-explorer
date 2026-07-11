@@ -48,7 +48,10 @@ class TimelinePanel:
                 "kind": "visit",
                 "time": visit.start_time,
                 "title": f"📍 {place_name}",
-                "details": f"{minutes:.0f} min",
+                "details":
+                    f"{minutes:.0f} min\n"
+                    f"{visit.latitude:.5f}, "
+                    f"{visit.longitude:.5f}",
                 "path_id": None
             })
 

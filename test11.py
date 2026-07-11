@@ -3,10 +3,13 @@ import sqlite3
 conn = sqlite3.connect("timeline.db")
 cur = conn.cursor()
 
-cur.execute("SELECT COUNT(*) FROM path_segments")
-print("Path segments:", cur.fetchone()[0])
+cur.execute("""
+SELECT latitude, longitude, place_id, name, address
+FROM place_cache
+LIMIT 20
+""")
 
-cur.execute("SELECT COUNT(*) FROM path_points")
-print("Path points:", cur.fetchone()[0])
+for row in cur.fetchall():
+    print(row)
 
 conn.close()

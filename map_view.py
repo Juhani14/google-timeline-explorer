@@ -98,9 +98,9 @@ class TimelineMap:
                 opacity = 1.0
                 selected_bounds = points
             else:
-                color = "darkblue"
-                weight = 3
-                opacity = 0.35
+                color = "royalblue"
+                weight = 6
+                opacity = 0.60
 
             folium.PolyLine(
                 points,
