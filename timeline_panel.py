@@ -3,7 +3,12 @@
 import streamlit as st
 
 from config import ICONS
-from utils import duration_minutes, average_speed
+from pathlib import Path
+from utils import (
+    duration_minutes,
+    average_speed,
+    local_time_text
+)
 
 
 class TimelinePanel:
@@ -44,15 +49,16 @@ class TimelinePanel:
                 "Visit"
             )
 
+            visit_photos = self.data.photos_for_visit(visit)
+
             events.append({
                 "kind": "visit",
                 "time": visit.start_time,
+                "timezone_offset": visit.start_timezone_offset,
                 "title": f"📍 {place_name}",
-                "details":
-                    f"{minutes:.0f} min\n"
-                    f"{visit.latitude:.5f}, "
-                    f"{visit.longitude:.5f}",
-                "path_id": None
+                "details": f"{minutes:.0f} min",
+                "path_id": None,
+                "photos": visit_photos
             })
 
         for _, activity in self.data.activities.iterrows():
@@ -78,16 +84,15 @@ class TimelinePanel:
             events.append({
                 "kind": "activity",
                 "time": activity.start_time,
-                "title": (
-                    f"{icon} "
-                    f"{activity.activity_type}"
-                ),
+                "timezone_offset": activity.start_timezone_offset,
+                "title": f"{icon} {activity.activity_type}",
                 "details": (
                     f"{activity.distance:.0f} m · "
                     f"{minutes:.0f} min · "
                     f"{speed:.1f} km/h"
                 ),
-                "path_id": path_id
+                "path_id": path_id,
+                "photos": None
             })
 
         events.sort(key=lambda event: event["time"])
@@ -104,13 +109,56 @@ class TimelinePanel:
             return
 
         for number, event in enumerate(events):
-            time_text = event["time"][11:16]
+            time_text = local_time_text(
+                event["time"],
+                event.get("timezone_offset")
+            )
 
             st.markdown(
                 f"**{time_text} — {event['title']}**"
             )
 
             st.caption(event["details"])
+            
+            photos = event.get("photos")
+
+            if photos is not None and len(photos) > 0:
+
+                st.caption(f"📷 {len(photos)} photos")
+
+                photo_columns = st.columns(
+                    min(3, len(photos))
+                )
+
+                for position, (_, photo) in enumerate(
+                    photos.head(6).iterrows()
+                ):
+                    filepath = Path(photo.filepath)
+
+                    if not filepath.exists():
+                        continue
+
+                    with photo_columns[
+                        position % len(photo_columns)
+                    ]:
+                        st.image(
+                            str(filepath),
+                            use_container_width=True
+                        )
+
+                        photo_time = (
+                            photo.taken_time[11:16]
+                            if photo.taken_time
+                            else ""
+                        )
+
+                        st.caption(photo_time)
+
+                if len(photos) > 6:
+                    st.caption(
+                        f"+ {len(photos) - 6} more photos "
+                        "in the photo gallery below"
+                    )            
 
             path_id = event["path_id"]
 

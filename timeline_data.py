@@ -46,6 +46,38 @@ class TimelineData:
             return 0
 
         return self.total_distance_km / self.activity_count
+        
+    def photos_for_visit(self, visit):
+        """
+        Return photos taken during this visit.
+        Photo timestamps are stored without timezone information,
+        while Timeline timestamps may include a timezone offset.
+        """
+
+        if len(self.photos) == 0:
+            return self.photos
+
+        visit_start = pd.to_datetime(visit.start_time)
+        visit_end = pd.to_datetime(visit.end_time)
+
+        # Convert timezone-aware Timeline times to local naive times.
+        if visit_start.tzinfo is not None:
+            visit_start = visit_start.tz_localize(None)
+
+        if visit_end.tzinfo is not None:
+            visit_end = visit_end.tz_localize(None)
+
+        photos = self.photos.copy()
+
+        photos["photo_time"] = pd.to_datetime(
+            photos["taken_time"],
+            errors="coerce"
+        )
+
+        return photos[
+            (photos["photo_time"] >= visit_start) &
+            (photos["photo_time"] <= visit_end)
+        ].sort_values("photo_time")        
 
     def path_id_for_activity(self, activity):
         """

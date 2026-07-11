@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS visits(
     id INTEGER PRIMARY KEY,
     start_time TEXT,
     end_time TEXT,
+    start_timezone_offset INTEGER,
+    end_timezone_offset INTEGER,
     latitude REAL,
     longitude REAL,
     place_id TEXT
@@ -28,6 +30,8 @@ CREATE TABLE IF NOT EXISTS activities(
     id INTEGER PRIMARY KEY,
     start_time TEXT,
     end_time TEXT,
+    start_timezone_offset INTEGER,
+    end_timezone_offset INTEGER,
     start_lat REAL,
     start_lon REAL,
     end_lat REAL,
@@ -125,14 +129,18 @@ for s in segments:
         INSERT INTO visits(
             start_time,
             end_time,
+            start_timezone_offset,
+            end_timezone_offset,
             latitude,
             longitude,
             place_id
         )
-        VALUES(?,?,?,?,?)
+        VALUES(?,?,?,?,?,?,?)
         """, (
             s["startTime"],
             s["endTime"],
+            s.get("startTimeTimezoneUtcOffsetMinutes"),
+            s.get("endTimeTimezoneUtcOffsetMinutes"),
             lat,
             lon,
             p.get("placeId", "")
@@ -158,6 +166,8 @@ for s in segments:
         INSERT INTO activities(
             start_time,
             end_time,
+            start_timezone_offset,
+            end_timezone_offset,
             start_lat,
             start_lon,
             end_lat,
@@ -165,10 +175,12 @@ for s in segments:
             activity_type,
             distance
         )
-        VALUES(?,?,?,?,?,?,?,?)
+        VALUES(?,?,?,?,?,?,?,?,?,?)
         """, (
             s["startTime"],
             s["endTime"],
+            s.get("startTimeTimezoneUtcOffsetMinutes"),
+            s.get("endTimeTimezoneUtcOffsetMinutes"),
             slat,
             slon,
             elat,
