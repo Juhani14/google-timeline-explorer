@@ -11,12 +11,14 @@ class TimelineData:
         visits,
         activities,
         paths,
+        photos,
         selected_path_id=None
     ):
         self.day = day
         self.visits = visits
         self.activities = activities
         self.paths = paths
+        self.photos = photos
         self.selected_path_id = selected_path_id
 
     @property

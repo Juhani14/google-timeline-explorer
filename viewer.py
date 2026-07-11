@@ -13,6 +13,7 @@ from place_resolver import PlaceResolver
 from statistics_panel import StatisticsPanel
 from timeline_data import TimelineData
 from timeline_panel import TimelinePanel
+from photo_panel import PhotoPanel
 
 
 DB = "timeline.db"
@@ -224,6 +225,7 @@ def main():
         visits = db.visits(selected_day)
         activities = db.activities(selected_day)
         paths = db.paths(selected_day)
+        photos = db.photos(selected_day)
 
         # ----------------------------------------------
         # Add cached place names
@@ -256,6 +258,7 @@ def main():
             visits,
             activities,
             paths,
+            photos,
             st.session_state.selected_path_id
         )
 
@@ -275,6 +278,14 @@ def main():
 
         with right:
             TimelineMap(data).show()
+            
+        st.divider()
+
+        with st.expander(
+            f"📷 Photos for {selected_day} ({len(photos)})",
+            expanded=False
+        ):
+            PhotoPanel(data).show()            
 
     # ==================================================
     # STATISTICS TAB

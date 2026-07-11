@@ -144,7 +144,23 @@ class Database:
         WHERE pc.id IS NULL
 
         LIMIT ?
-        """, self.conn, params=(limit,))        
+        """, self.conn, params=(limit,))  
+
+    def photos(self, day):
+        return pd.read_sql("""
+        SELECT
+            id,
+            filepath,
+            filename,
+            taken_time,
+            latitude,
+            longitude,
+            width,
+            height
+        FROM photos
+        WHERE substr(taken_time, 1, 10) = ?
+        ORDER BY taken_time
+        """, self.conn, params=(day,))        
 
     def save_place_name(
         self,
