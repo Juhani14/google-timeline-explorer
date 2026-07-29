@@ -1,0 +1,24 @@
+20.07.26
+C:\Users\juhan\Downloads\Google Timeline PC Access2.pdf
+sisältää tiedot ohjelmiston kehityksestä 11.07.26 mennessä
+
+importer.py
+tuhoaa vanhan database
+
+photo_importer.py
+päivittää databasen
+
+photos tulee oikein thaimaassa mutta ei suomessa, pariisissa ?
+
+streamlit run viewer.py
+highlight in map sometimes highlite many intervals
+
+resolve_all_places.py
+resolves places, kestää kauan mutta ei liian kauan (alle tunti ?)
+pitää tehdä uudelleen jos database tuhotaan, ei ongelma
+
+check_resolved.py
+kertoo paljonko paikoista on resolved
+
+DB Browser for SQLite
+browser database

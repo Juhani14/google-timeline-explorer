@@ -34,7 +34,7 @@ class PhotoPanel:
                 if filepath.exists():
                     st.image(
                         str(filepath),
-                        use_container_width=True
+                        width='stretch'
                     )
 
                     time_text = (

@@ -111,15 +111,10 @@ class TimelinePanel:
 
         for number, event in enumerate(events):
         
-            st.caption(f"DEBUG EVENT TIME: {event['time']}")
+            
             time_text = event["time"][11:16]
             
-            st.caption(
-                f"DEBUG: raw={event['time']} | "
-                f"zone={event.get('timezone_name')} | "
-                f"offset={event.get('timezone_offset')} | "
-                f"display={time_text}"
-            )
+           
 
             st.markdown(
                 f"**{time_text} — {event['title']}**"

@@ -14,6 +14,7 @@ from statistics_panel import StatisticsPanel
 from timeline_data import TimelineData
 from timeline_panel import TimelinePanel
 from photo_panel import PhotoPanel
+from kml_exporter import KMLExporter
 
 
 DB = "timeline.db"
@@ -30,9 +31,9 @@ def main():
     st.title(APP_NAME)
 
     # Optional development information.
-    with st.sidebar:
-        st.caption("Database")
-        st.write(os.path.abspath(DB))
+    #with st.sidebar:
+    #   st.caption("Database")
+    #  st.write(os.path.abspath(DB))
 
     # --------------------------------------------------
     # Open database
@@ -263,6 +264,17 @@ def main():
         )
 
         st.caption(f"Selected day: {selected_day}")
+        
+        
+        kml_data = KMLExporter(data).build()
+
+        st.download_button(
+            label=f"⬇ Export {selected_day} to KML",
+            data=kml_data,
+            file_name=f"timeline_{selected_day}.kml",
+            mime="application/vnd.google-earth.kml+xml",
+            key=f"download_kml_{selected_day}"
+        )
 
         # ----------------------------------------------
         # Timeline and map layout

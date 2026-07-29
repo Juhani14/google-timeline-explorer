@@ -21,7 +21,7 @@ class StatisticsPanel:
         """, self.db.conn)
 
         st.subheader("🚶 Transport summary")
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, width='stretch')
 
     def yearly_distance(self):
         df = pd.read_sql("""
@@ -49,7 +49,7 @@ class StatisticsPanel:
         """, self.db.conn)
 
         st.subheader("🏆 Longest travel days")
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, width='stretch')
         
         
     def flights(self):
@@ -79,7 +79,7 @@ class StatisticsPanel:
         c3.metric("Longest flight", f"{df.iloc[0]['km']:.0f} km")
 
         st.write("Longest flights")
-        st.dataframe(df.head(20), use_container_width=True)        
+        st.dataframe(df.head(20), width='stretch')        
 
     def overview(self):
         st.subheader("📊 Overview")
@@ -158,13 +158,13 @@ class StatisticsPanel:
         """, self.db.conn)
 
         st.write("Longest activities")
-        st.dataframe(longest_activity, use_container_width=True)
+        st.dataframe(longest_activity, width='stretch')
 
         st.write("Longest walks")
-        st.dataframe(longest_walk, use_container_width=True)
+        st.dataframe(longest_walk, width='stretch')
 
         st.write("Longest visits")
-        st.dataframe(longest_visit, use_container_width=True)
+        st.dataframe(longest_visit, width='stretch')
 
     def monthly_distance(self):
         df = pd.read_sql("""
@@ -185,7 +185,7 @@ class StatisticsPanel:
 
         st.bar_chart(df.set_index("month")["km"])
 
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, width='stretch')
         
     def show(self):
         tab1, tab2, tab3, tab4 = st.tabs([
