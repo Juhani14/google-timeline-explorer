@@ -1,0 +1,11 @@
+17.08.26
+tehty update_photo_drive.py
+to update the stored paths in the photos table.
+
+edelleen laittaa kuvat timelinellä  väärään paikkaa vaikka ajat täsmää
+
+18.08.26
+tehty uusi database (timeline.json 300726, photso2507.26) :
+importer.py
+photo_importer.py   (muutettava Path riippuen missä koneessa ollaan, kuvat ennen 2014 siirretty väliaikaisesti eri folderiin)
+resolve_all_places.py

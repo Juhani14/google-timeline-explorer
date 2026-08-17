@@ -10,7 +10,7 @@ from PIL.ExifTags import GPSTAGS, TAGS
 
 
 DB = "timeline.db"
-PHOTO_ROOT = Path(r"D:\MyPictures")
+PHOTO_ROOT = Path(r"F:\MyPictures")
 
 PHOTO_EXTENSIONS = {
     ".jpg",
